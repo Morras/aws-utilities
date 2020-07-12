@@ -1,0 +1,79 @@
+{
+    "Description": "Budget for monitoring resources outside primary region",
+    "Parameters": {
+        "NotificationEmail": {
+            "Type": "String",
+            "Description": "Email address of account owner, who will receive emil notifications when the budget is in risk of being exceeded."
+        },
+        "BudgetAmount": {
+            "Type": "Number",
+            "Description": "The monthly budget for the account in dollars that you allow outside of your primary region."
+        }
+    },
+    "Resources": {
+        "Budget": {
+            "Type": "AWS::Budgets::Budget",
+            "Properties": {
+                "Budget": {
+                    "BudgetLimit": {
+                        "Amount": {
+                            "Ref": "BudgetAmount"
+                        },
+                        "Unit": "USD"
+                    },
+                    "TimeUnit": "MONTHLY",
+                    "BudgetType": "COST",
+                    "BudgetName": "RegionUsageMonitor",
+                    "CostFilters": {
+                        "Region": [
+                            "us-east-2",
+                            "us-east-1",
+                            "us-west-1",
+                            "us-west-2",
+                            "af-south-1",
+                            "ap-east-1",
+                            "ap-south-1",
+                            "ap-northeast-3",
+                            "ap-northeast-2",
+                            "ap-southeast-1",
+                            "ap-southeast-2",
+                            "ap-northeast-1",
+                            "ca-central-1",
+                            "cn-north-1",
+                            "cn-northwest-1",
+                            "eu-central-1",
+                            "eu-west-2",
+                            "eu-south-1",
+                            "eu-west-3",
+                            "eu-north-1",
+                            "me-south-1",
+                            "sa-east-1"
+                        ]
+                    }
+                },
+                "NotificationsWithSubscribers": [
+                    {
+                        "Notification": {
+                            "NotificationType": "ACTUAL",
+                            "ComparisonOperator": "GREATER_THAN",
+                            "Threshold": 99
+                        },
+                        "Subscribers": [
+                            {
+                                "SubscriptionType": "EMAIL",
+                                "Address": {
+                                    "Ref": "NotificationEmail"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "BudgetId": {
+            "Value": "BudgetExample"
+        }
+    }
+}
