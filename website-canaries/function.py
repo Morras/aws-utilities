@@ -28,7 +28,7 @@ def lambda_handler(event, context):
     
     sns_client.publish(
         TopicArn=SNS_TOPIC,
-        Message="Failed to get a positive respond to HTTP request to the following URLS: {}".format(str(failed_urls)),
+        Message="Failed to get a positive respond to HTTP request to the following URLS: {}".format(str(failled_urls)),
         Subject="One or more websites are not responding as expected"
     )
     
