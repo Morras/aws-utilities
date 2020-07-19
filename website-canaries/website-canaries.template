@@ -1,0 +1,89 @@
+{
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Parameters": {
+        "WebsiteUrls": {
+            "Description": "Comma separated list of URLs to check. Must include http:// or https:// prefix.",
+            "Type": "String"
+        },
+        "Frequency": {
+            "Description": "Frequency of which the website canaries function should be invoked with.",
+            "Type": "Number",
+            "MinValue": 1,
+            "Default": 1
+        },
+        "FrequencyUnit": {
+            "Description": "Unit of the frequency. See https://docs.aws.amazon.com/eventbridge/latest/userguide/scheduled-events.html#rate-expressions for detail",
+            "Type": "String",
+            "AllowedValues": [
+                "minute",
+                "minutes",
+                "hour",
+                "hours",
+                "day",
+                "days"
+            ],
+            "Default": "hour"
+        },
+        "Email": {
+            "Description": "Email to notify of broken websites.",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "SnsTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+                "DisplayName": "Website-Canaries-Alarm",
+                "Subscription": [
+                    {
+                        "Endpoint": {
+                            "Ref": "Email"
+                        },
+                        "Protocol": "Email"
+                    }
+                ],
+                "TopicName": "Website-Canaries-Alarm"
+            }
+        },
+        "Function": {
+            "Type": "AWS::Serverless::Function",
+            "Properties": {
+                "Handler": "index.lambda_handler",
+                "Runtime": "python3.8",
+                "CodeUri": "./function.py",
+                "Description": "Checks a list of website URLs to ensure that they always return status 200. If not an SNS topic will be notified of the broken URL.",
+                "FunctionName": "Website-canaries",
+                "Environment": {
+                    "Variables": {
+                        "SNS_TOPIC": {
+                            "Ref": "SnsTopic"
+                        },
+                        "WEBSITE_URLS": {
+                            "Ref": "WebsiteUrls"
+                        }
+                    }
+                },
+                "Events": {
+                    "Schedule": {
+                        "Type": "Schedule",
+                        "Properties": {
+                            "Description": "Periodically triggers website-canaries function to check if websites are up.",
+                            "Enabled": true,
+                            "Name": "Website-canaries-periodic-trigger",
+                            "Schedule": {
+                                "Fn::Sub": "rate(${Frequency} ${FrequencyUnit})"
+                            }
+                        }
+                    }
+                },
+                "Policies": {
+                    "SNSPublishMessagePolicy": {
+                        "TopicName": {
+                            "Ref": "SnsTopic"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

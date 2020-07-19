@@ -1,0 +1,1 @@
+Installation: '''sam deploy --template-file website-canaries.template --stack-name website-canaries --s3-bucket [S3 BUCKET]''' --capabilities CAPABILITY_IAM --parameter-overrides Email=[YOUR-EMAIL] WebsiteUrls="https://url-1, https://url-2"
